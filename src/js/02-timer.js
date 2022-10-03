@@ -1,14 +1,16 @@
+import flatpickr from "flatpickr";
+import "flatpickr/dist/flatpickr.min.css";
 class CountdownTimer {
     constructor({ selector, targetDate }) {
       this.selector = selector;
       this.targetDate = targetDate;
   
       this.refs = {
-        days: document.querySelector('[data-value="days"]'),
-        hours: document.querySelector('[data-value="hours"]'),
-        mins: document.querySelector('[data-value="mins"]'),
-        secs: document.querySelector('[data-value="secs"]'),
-        timerOver: document.querySelector('[data-value="over"]'),
+        days: document.querySelector('[data-days]'),
+        hours: document.querySelector('[data-hours]'),
+        mins: document.querySelector('[data-minutes]'),
+        secs: document.querySelector('[data-seconds]'),
+        // timerOver: document.querySelector('[data-start]'),
       };
     }
     dateTimer() {
@@ -45,8 +47,8 @@ class CountdownTimer {
   }
   
   const start = new CountdownTimer({
-    selector: '#timer-1',
-    targetDate: new Date('Jul 17, 2021'),
+    selector: '#timer',
+    targetDate: new Date('Jul 17, 2023'),
   });
   
   start.dateTimer();
