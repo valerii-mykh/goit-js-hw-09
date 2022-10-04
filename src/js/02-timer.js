@@ -1,54 +1,89 @@
 import flatpickr from "flatpickr";
 import "flatpickr/dist/flatpickr.min.css";
-class CountdownTimer {
-    constructor({ selector, targetDate }) {
-      this.selector = selector;
-      this.targetDate = targetDate;
-  
-      this.refs = {
-        days: document.querySelector('[data-days]'),
-        hours: document.querySelector('[data-hours]'),
-        mins: document.querySelector('[data-minutes]'),
-        secs: document.querySelector('[data-seconds]'),
-        // timerOver: document.querySelector('[data-start]'),
-      };
-    }
-    dateTimer() {
-      setInterval(() => {
-        const endDate = this.targetDate.getTime();
-  
-        let nowTime = Date.now();
-        let time = endDate - nowTime;
-  
-        if (time > 0) {
-          const day = Math.floor(time / (1000 * 60 * 60 * 24));
-          const hour = Math.floor(
-            (time % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60),
-          );
-          const min = Math.floor((time % (1000 * 60 * 60)) / (1000 * 60));
-          const sec = Math.floor((time % (1000 * 60)) / 1000);
-  
-          this.updateTimer(this.refs.secs, sec);
-          this.updateTimer(this.refs.mins, min);
-          this.updateTimer(this.refs.hours, hour);
-          this.updateTimer(this.refs.days, day);
-        } else {
-          this.refs.timerOver.textContent = `Timer is over`;
+
+const myInput = document.querySelector("#datetime-picker");
+const timeRef = document.querySelector('.timer');
+const startBtn = document.querySelector('[data-start]');
+const notifyOptions = {
+        position: 'center-center',
+        backOverlay: true,
+        clickToClose: true,
+    };
+
+let TIMER_DEADLINE = null;
+
+startBtn.setAttribute('disabled', 'disabled');
+
+const options = {
+    enableTime: true,
+    time_24hr: true,
+    defaultDate: new Date(),
+    minuteIncrement: 1,
+    onClose(selectedDates) {
+        TIMER_DEADLINE = selectedDates[0];
+        
+        if (selectedDates[0] <= new Date()) {
+            Notify.failure('Please choose a date in the future', notifyOptions);
+            startBtn.setAttribute('disabled', 'disabled');
+            } else {
+            startBtn.removeAttribute('disabled');
+            }
+    },
+};
+
+
+flatpickr(myInput, options);
+
+const timer = {
+    intervalID: null,
+    refs: {},
+
+    start(rootRef, deadline) {
+        this.intervalId = setInterval(() => {
+        const delta = deadline.getTime() - Date.now();
+
+        if (delta <= 1000) {
+            clearInterval(this.intervalId);
+            Notify.success('Mission accomplished!!!', notifyOptions);
         }
-      }, 1000);
+    
+        const data = this.convertMs(delta);
+        Object.entries(data).forEach(([name, value]) => {
+        this.refs[name].textContent = this.twoCharacterNumber(value);
+        });
+        
+        });
+        this.getRefs(rootRef);
+            Notify.success('START', notifyOptions);
+        }, 
+
+        twoCharacterNumber(value) {
+            return String(value).padStart(2, '0');
+        },
+    
+    getRefs(rootRef) {
+        this.refs.days = rootRef.querySelector('[data-days]');
+        this.refs.hours = rootRef.querySelector('[data-hours]');
+        this.refs.minutes = rootRef.querySelector('[data-minutes]');
+        this.refs.seconds = rootRef.querySelector('[data-seconds]');
+    },
+
+    convertMs(ms) {
+        const second = 1000;
+        const minute = second * 60;
+        const hour = minute * 60;
+        const day = hour * 24;
+        const days = Math.floor(ms / day);
+        const hours = Math.floor((ms % day) / hour);
+        const minutes = Math.floor(((ms % day) % hour) / minute);
+        const seconds = Math.floor((((ms % day) % hour) % minute) / second);
+    
+        return { days, hours, minutes, seconds };
+        },
+    };
+        
+    function startBtnClick() {
+        timer.start(timeRef, TIMER_DEADLINE);
     }
-    updateTimer(nums, num) {
-      if (num <= 9) {
-        nums.textContent = '0' + num;
-      } else {
-        nums.textContent = num;
-      }
-    }
-  }
-  
-  const start = new CountdownTimer({
-    selector: '#timer',
-    targetDate: new Date('Jul 17, 2023'),
-  });
-  
-  start.dateTimer();
+
+    startBtn.addEventListener('click', startBtnClick);
